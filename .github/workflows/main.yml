@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  generate_cv:
+    runs-on: ubuntu-latest
+    name: A job to generate CV
+    steps:
+      - name: Checkzout repository
+        uses: actions/checkout@v4
+        
+      - name: Build Docker image
+        run: docker build --tag latex-cv -f Dockerfile .
+
+      - name: Run Docker container
+        run: docker run --name cv-container latex-cv
+
+      - name: Copy PDF from container
+        run: docker cp cv-container:/app/main.pdf ./main.pdf
+
+      - name: Remove container
+        run: docker rm cv-container
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-pdf
+          path: main.pdf
